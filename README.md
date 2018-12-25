@@ -11,9 +11,10 @@ Auto-Scaling の `Launch`, `Terminate` イベントを検知し、 EC2 インス
 
 ## 動機 / Motivation
 
-Prometheus や NewRelic などの監視システムを利用するためには、ライセンスやツールのノウハウが必要になります。  
-この SAM は、 AWS のネイティブサービスのみを利用した監視を実現するために実装しました。
-これにより EC2 の監視が CloudWatch のカスタムメトリクスやアラームなどの課金のみで実現できるようになります。
+Auto-Scaling のメトリクスに対して CloudWatch Metric Alarm を設定することは可能だが、個々のインスタンスのメトリクスに対して Alarm を設定した場合、 Auto-Scaling 下のインスタンスだと増減の際に無効になってしまう。
+
+Auto-Scaling に対応した監視サービスを利用すれば監視は可能だが、Prometheus や NewRelic などの監視システムを利用するためには、ライセンスやツールのノウハウが必要になる。  
+この SAM は、 AWS のネイティブサービスのみを利用した監視を実現するためのもので、EC2 の監視が CloudWatch のカスタムメトリクスやアラームなどの課金のみで実現できる。
 
 ## 用語 / Glossary
 
@@ -47,6 +48,40 @@ Prometheus や NewRelic などの監視システムを利用するためには�
   * 監視定義バケットにアップロードされた `監視定義テンプレート` ファイル。
   * `YAML` のテンプレートを利用する場合は `Content-Type` を `text/yaml` など、 `yaml` を含む Mime-Type にしてアップロードする必要があります。
   * いくつかのサンプルテンプレートはリポジトリに含まれています。監視要件によってテンプレートを追加・修正してアップロードしてください。
+
+## SAM のパラメータ / SAM Parameters
+
+* FunctionName
+
+    SAM で生成される Lambda 関数の名前。デフォルトは `ec2-auto-metric-alarms` 。
+
+* EmergencyTopicArn
+
+    `通知種別` が `emergency` の通知を行う SNS トピックの ARN 。
+
+* OrdinaryTopicArn
+
+    `通知種別` が `ordinary` の通知を行う SNS トピックの ARN 。
+
+* DefinitionBucketName
+
+    `監視定義バケット` のバケット名。
+
+* DefinitionObjectPrefix
+
+    `監視定義テンプレート` が格納されている `監視定義バケット` の S3 Object Prefix。デフォルトは `/` 。
+
+* DefinitionTagKey
+
+    `監視定義名` が設定されている EC2 インスタンスのタグキー。デフォルトは `AlarmDefinitionName` 。
+
+* LogLevel
+
+    Lambda 関数内の Ruby logger のログレベル。デフォルトは `INFO` 。
+
+* LogRetensionInDays
+
+    生成される Lambda 関数の LogGroup の保持日数。デフォルトは `30` 日。
 
 ## この関数の挙動 / Behavior
 
