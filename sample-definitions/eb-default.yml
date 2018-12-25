@@ -1,0 +1,15 @@
+---
+name: eb-default
+description: |
+  ElasticBeanstalk の EC2 インスタンスの標準監視テンプレート
+  ElasticBeanstalk では LoadAverage が収集できるため、CPU監視は行わない
+include_definitions:
+- default
+- eb-load-5m
+- eb-rootfs-util
+ignore_alarm_ids:
+- notice-cpu-util
+- emergency-cpu-util
+# ディスク監視も CloudWatch Agent ではなく EB のメトリクスを使うため無効
+- notice-disk-nvme0n1p1-util
+- emergency-disk-nvme0n1p1-util

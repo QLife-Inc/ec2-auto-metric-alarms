@@ -1,0 +1,129 @@
+---
+
+AWSTemplateFormatVersion: "2010-09-09"
+Transform: AWS::Serverless-2016-10-31
+Description: Set EC2 instance metric alarm for Auto-Scaling
+
+# https://docs.aws.amazon.com/ja_jp/AWSCloudFormation/latest/UserGuide/parameters-section-structure.html
+Parameters:
+  FunctionName:
+    Description: Lambda function name
+    Type: String
+    Default: ec2-auto-metric-alarms
+  EmergencyTopicArn:
+    Description: emergency notification topic ARN
+    Type: String
+  OrdinaryTopicArn:
+    Description: ordinary  notification topic ARN
+    Type: String
+  DefinitionBucketName:
+    Description: S3 bucket name to store the alarm definition
+    Type: String
+  DefinitionObjectPrefix:
+    Description:  Prefix of S3 object in which alarm definition is stored (trailing slash required)
+    Type: String
+    Default: /
+  DefinitionTagKey:
+    Description: Tag name of EC 2 which is supposed to store the alarm definition object name
+    Type: String
+    Default: AlarmDefinitionName
+  LogLevel:
+    Description: Lambda log level (DEBUG/INFO/WARN/ERROR)
+    Type: String
+    Default: INFO
+  LogRetensionInDays:
+    Description: CloudWatch Logs retension in days for this function
+    Type: Number
+    Default: 30
+
+# More info about Globals: https://github.com/awslabs/serverless-application-model/blob/master/docs/globals.rst
+# Globals:
+
+Resources:
+
+  # 予め保存期間を設定した LogGroup を作成しておかないとログ保存期間が無期限になる
+  AutoMetricAlarmLogs:
+    Type: AWS::Logs::LogGroup
+    Properties:
+      LogGroupName: !Sub "/aws/lambda/${FunctionName}"
+      RetentionInDays: !Ref LogRetensionInDays
+
+  # Lambda 関数本体
+  AutoMetricAlarm:
+    # https://docs.aws.amazon.com/serverless-application-model/latest/developerguide/serverless-sam-template.html
+    Type: AWS::Serverless::Function
+    Properties:
+      FunctionName: !Ref FunctionName
+      Handler: function.lambda_handler
+      Runtime: ruby2.5
+      Timeout: 60
+      CodeUri: src/
+      Role: !GetAtt AutoMetricAlarmRole.Arn
+      Environment:
+        Variables:
+          EMERGENCY_TOPIC_ARN: !Ref EmergencyTopicArn
+          ORDINARY_TOPIC_ARN: !Ref OrdinaryTopicArn
+          DEFINITION_BUCKET_NAME: !Ref DefinitionBucketName
+          DEFINITION_OBJECT_PREFIX: !Ref DefinitionObjectPrefix
+          DEFINITION_TAG_KEY: !Ref DefinitionTagKey
+          LOG_LEVEL: !Ref LogLevel
+      # https://github.com/awslabs/serverless-application-model/blob/develop/versions/2016-10-31.md#event-source-types
+      Events:
+        LaunchTerminateEvent:
+          Type: CloudWatchEvent
+          Properties:
+            Pattern:
+              source:
+                - aws.autoscaling
+              detail-type:
+                - EC2 Instance Launch Successful
+                - EC2 Instance Terminate Successful
+
+  # Lambda 実行ロール
+  AutoMetricAlarmRole:
+    Type: AWS::IAM::Role
+    Properties:
+      RoleName: !Sub "${FunctionName}-role"
+      AssumeRolePolicyDocument:
+        Version: "2012-10-17"
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service: lambda.amazonaws.com
+            Action: sts:AssumeRole
+      Policies:
+        - PolicyName: !Sub "${FunctionName}-policy"
+          PolicyDocument:
+            Version: "2012-10-17"
+            Statement:
+              # Lambda 関数の基本的な認可
+              - Effect: Allow
+                Action:
+                  - logs:CreateLogGroup
+                  - logs:CreateLogStream
+                  - logs:PutLogEvents
+                  - xray:PutTraceSegments
+                  - xray:PutTelemetryRecords
+                Resource: "*"
+              # Lambda 関数コードで必要とする認可
+              - Effect: Allow
+                Action:
+                  - ec2:DescribeInstances
+                  - cloudwatch:DescribeAlarms
+                  - cloudwatch:PutMetricAlarm
+                  - cloudwatch:DeleteAlarms
+                Resource: "*"
+              - Effect: Allow
+                Action: s3:ListBucket
+                Resource: !Sub "arn:aws:s3:::${DefinitionBucketName}"
+              - Effect: Allow
+                Action:
+                  - s3:HeadObject
+                  - s3:GetObject
+                Resource: !Sub "arn:aws:s3:::${DefinitionBucketName}/${DefinitionObjectPrefix}*"
+
+Outputs:
+  FunctionName:
+    Value: !Ref FunctionName
+  FunctionArn:
+    Value: !GetAtt AutoMetricAlarm.Arn

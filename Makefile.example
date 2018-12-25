@@ -1,0 +1,31 @@
+FUNCTION_NAME := ec2-auto-metric-alarm
+AWS_REGION := ap-northeast-1
+AWS_ACCOUNT_ID := 999999999999
+EMERGENCY_TOPIC_NAME := system-emergency
+ORDINARY_TOPIC_NAME := system-emergency
+SAM_SOURCE_BUCKET := serverless-application-model
+SAM_SOURCE_PREFIX := sources
+DEFINITION_BUCKET := infra-management
+DEFINITION_PREFIX := alarm-definitions
+STACK_NAME := AutoMetricAlarmFunction
+
+rspec:
+	bin/rspec
+
+install:
+	bundle install --path vendor/bundle
+
+validate:
+	sam validate
+
+deploy:
+	bundle install --deployment --path src/vendor/bundle --without test
+	sam package --template-file template.yaml --output-template-file cloudformation.yml \
+    --s3-bucket $(SAM_SOURCE_BUCKET) --s3-prefix $(SAM_SOURCE_PREFIX)
+	sam deploy --stack-name $(STACK_NAME) --template-file cloudformation.yml --capabilities CAPABILITY_NAMED_IAM \
+    --parameter-overrides \
+      DefinitionBucketName=$(DEFINITION_BUCKET) \
+      DefinitionObjectPrefix=$(DEFINITION_PREFIX)/ \
+      FunctionName=$(FUNCTION_NAME) \
+      EmergencyTopicArn=arn:aws:sns:$(AWS_REGION):$(AWS_ACCOUNT_ID):$(EMERGENCY_TOPIC_NAME) \
+      OrdinaryTopicArn=arn:aws:sns:$(AWS_REGION):$(AWS_ACCOUNT_ID):$(ORDINARY_TOPIC_NAME)

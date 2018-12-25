@@ -1,0 +1,11 @@
+---
+name: default-without-emergency
+description: |
+  標準の EC2 監視テンプレートから緊急通知を除外したもの
+  ステージング環境のインスタンスや SLA の低いインスタンスに利用する
+include_definitions:
+- default
+ignore_alarm_ids:
+- emergency-cpu-util
+- emergency-memory-util
+- emergency-disk-nvme0n1p1-util

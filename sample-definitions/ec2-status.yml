@@ -1,0 +1,20 @@
+---
+name: ec2-status
+description: EC2 の ステータス 監視テンプレート
+alarm_definitions:
+- alarm_id: notice-status-check
+  notification_type: ordinary
+  alarm_name: ec2-<%= instance.id %>-notice-status-check
+  alarm_description: <%= instance.name %> ステータスチェックが失敗したら通知
+  namespace: AWS/EC2
+  dimensions:
+  - name: InstanceId
+    value: <%= instance.id %>
+  metric_name: StatusCheckFailed
+  statistic: Maximum
+  threshold: 1
+  comparison_operator: GreaterThanThreshold
+  period: 300
+  evaluation_periods: 1
+  datapoints_to_alarm: 1
+  treat_missing_data: ignore

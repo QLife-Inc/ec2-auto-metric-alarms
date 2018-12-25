@@ -1,0 +1,8 @@
+{
+  "include_definitions": [
+    "cpu-util.json"
+  ],
+  "ignore_alarm_ids": [
+    "emergency-cpu-util"
+  ]
+}

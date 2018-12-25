@@ -1,0 +1,10 @@
+---
+name: default
+description: |
+  標準の EC2 監視テンプレート
+  EC2 ステータス, CPU 使用率, CloudWatch Agent によるメモリ, ディスク使用率の監視を行う
+include_definitions:
+- ec2-status
+- cpu-util
+- cwagent-memory-util
+- cwagent-disk-nvme0n1p1-util

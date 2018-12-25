@@ -1,0 +1,47 @@
+---
+name: eb-rootfs-util
+description: |
+  ElasticBeanstalk のインスタンスメトリクスである RootFilesystemUtil を監視するテンプレート。
+  ElasticBeanstalk の RootFilesystemUtil が監視されていることが前提となる。
+<%
+eb_env_name = instance.tag_value('elasticbeanstalk:environment-name')
+if eb_env_name
+%>
+alarm_definitions:
+- alarm_id: notice-eb-rootfs-util
+  notification_type: ordinary
+  alarm_name: eb-<%= instance.id %>-notice-rootfs-util
+  alarm_description: <%= instance.name %> ディスク 使用率 が 90 % を超えていたら通知
+  namespace: AWS/ElasticBeanstalk
+  dimensions:
+  - name: EnvironmentName
+    value: <%= eb_env_name %>
+  - name: InstanceId
+    value: <%= instance.id %>
+  metric_name: RootFilesystemUtil
+  statistic: Maximum
+  threshold: 90
+  comparison_operator: GreaterThanThreshold
+  period: 60
+  evaluation_periods: 1
+  datapoints_to_alarm: 1
+  treat_missing_data: ignore
+- alarm_id: emergency-eb-rootfs-util
+  notification_type: emergency
+  alarm_name: eb-<%= instance.id %>-emergency-rootfs-util
+  alarm_description: <%= instance.name %> ディスク 使用率 が 95 % を超えていたら通知
+  namespace: AWS/ElasticBeanstalk
+  dimensions:
+  - name: EnvironmentName
+    value: <%= eb_env_name %>
+  - name: InstanceId
+    value: <%= instance.id %>
+  metric_name: RootFilesystemUtil
+  statistic: Maximum
+  threshold: 95
+  comparison_operator: GreaterThanThreshold
+  period: 60
+  evaluation_periods: 1
+  datapoints_to_alarm: 1
+  treat_missing_data: ignore
+<% end %>

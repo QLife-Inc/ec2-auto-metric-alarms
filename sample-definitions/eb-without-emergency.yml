@@ -1,0 +1,9 @@
+---
+name: eb-without-emergency
+description: eb-default から緊急通知を除外したテンプレート
+include_definitions:
+- eb-default
+ignore_alarm_ids:
+- emergency-memory-util
+- emergency-eb-load-average
+- emergency-eb-rootfs-util

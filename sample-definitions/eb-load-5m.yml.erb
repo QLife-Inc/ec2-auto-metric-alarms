@@ -1,0 +1,51 @@
+---
+name: eb-load-5m
+description: |
+  ElasticBeanstalk のインスタンスメトリクスである LoadAverage5min を監視するテンプレート。
+  ElasticBeanstalk の LoadAverage5min が監視されていることが前提となる。
+
+<%
+eb_env_name = instance.tag_value('elasticbeanstalk:environment-name')
+if eb_env_name
+  core_count = instance.cpu_options.core_count
+  ordinary_threshold = (core_count * 1.2).ceil
+  emergency_threshold = (core_count * 1.5).ceil
+%>
+alarm_definitions:
+- alarm_id: notice-eb-load-average
+  notification_type: ordinary
+  alarm_name: eb-<%= instance.id %>-notice-load-average
+  alarm_description: <%= instance.name %> LoadAverage が 10 分以上 <%= ordinary_threshold %>(Core 数 * 1.2) を超えていたら通知
+  namespace: AWS/ElasticBeanstalk
+  dimensions:
+  - name: EnvironmentName
+    value: <%= eb_env_name %>
+  - name: InstanceId
+    value: <%= instance.id %>
+  metric_name: LoadAverage5min
+  statistic: Average
+  threshold: <%= ordinary_threshold %>
+  comparison_operator: GreaterThanThreshold
+  period: 300
+  evaluation_periods: 2
+  datapoints_to_alarm: 2
+  treat_missing_data: ignore
+- alarm_id: emergency-eb-load-average
+  notification_type: emergency
+  alarm_name: eb-<%= instance.id %>-emergency-load-average
+  alarm_description: <%= instance.name %> LoadAverage が 30 分以上 <%= emergency_threshold %>(Core 数 * 1.5) を超えていたら通知
+  namespace: AWS/ElasticBeanstalk
+  dimensions:
+  - name: EnvironmentName
+    value: <%= eb_env_name %>
+  - name: InstanceId
+    value: <%= instance.id %>
+  metric_name: LoadAverage5min
+  statistic: Average
+  threshold: <%= emergency_threshold %>
+  comparison_operator: GreaterThanThreshold
+  period: 300
+  evaluation_periods: 6
+  datapoints_to_alarm: 6
+  treat_missing_data: ignore
+<% end %>

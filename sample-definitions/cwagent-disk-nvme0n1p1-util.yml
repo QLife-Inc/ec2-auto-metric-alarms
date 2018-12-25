@@ -1,0 +1,48 @@
+---
+name: cwagent-disk-nvme0n1p1-util
+description: ルートディスクの EBS が nvme0n1p1 を利用している場合にのみ利用可能なディスク監視テンプレート
+alarm_definitions:
+- alarm_id: notice-disk-nvme0n1p1-util
+  notification_type: ordinary
+  alarm_name: ec2-<%= instance.id %>-notice-disk-nvme0n1p1-util
+  alarm_description: <%= instance.name %> nvme0n1p1 ディスク 使用率 が 90 % を超えていたら通知
+  namespace: CWAgent
+  dimensions:
+  - name: InstanceId
+    value: <%= instance.id %>
+  - name: device
+    value: nvme0n1p1
+  - name: fstype
+    value: xfs
+  - name: path
+    value: /
+  metric_name: disk_used_percent
+  statistic: Maximum
+  threshold: 90
+  comparison_operator: GreaterThanThreshold
+  period: 60
+  evaluation_periods: 1
+  datapoints_to_alarm: 1
+  treat_missing_data: ignore
+- alarm_id: emergency-disk-nvme0n1p1-util
+  notification_type: emergency
+  alarm_name: ec2-<%= instance.id %>-emergency-disk-nvme0n1p1-util
+  alarm_description: <%= instance.name %> nvme0n1p1 ディスク 使用率 が 95 % を超えていたら通知
+  namespace: CWAgent
+  dimensions:
+  - name: InstanceId
+    value: <%= instance.id %>
+  - name: device
+    value: nvme0n1p1
+  - name: fstype
+    value: xfs
+  - name: path
+    value: /
+  metric_name: disk_used_percent
+  statistic: Maximum
+  threshold: 95
+  comparison_operator: GreaterThanThreshold
+  period: 60
+  evaluation_periods: 1
+  datapoints_to_alarm: 1
+  treat_missing_data: ignore

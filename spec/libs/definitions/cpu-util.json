@@ -1,0 +1,42 @@
+{
+  "alarm_definitions": [
+    {
+      "alarm_id": "emergency-cpu-util",
+      "notification_type": "emergency",
+      "alarm_name": "ec2-<%= instance.id %>-emergency-cpu-util",
+      "alarm_description": "<%= instance.name %> CPU使用率が 30 分間 90 % を超えていたら通知",
+      "namespace": "AWS/EC2",
+      "dimensions": [
+        { "name": "InstanceId", "value": "<%= instance.id %>" }
+      ],
+      "metric_name": "CPUUtilization",
+      "statistic": "Average",
+      "threshold": 90,
+      "unit": "Percent",
+      "comparison_operator": "GreaterThanThreshold",
+      "period": 300,
+      "evaluation_periods": 6,
+      "datapoints_to_alarm": 6,
+      "treat_missing_data": "ignore"
+    },
+    {
+      "alarm_id": "notice-cpu-util",
+      "notification_type": "ordinary",
+      "alarm_name": "ec2-<%= instance.id %>-notice-cpu-util",
+      "alarm_description": "<%= instance.name %> CPU使用率が 10 分間 90 % を超えていたら通知",
+      "namespace": "AWS/EC2",
+      "dimensions": [
+        { "name": "InstanceId", "value": "<%= instance.id %>" }
+      ],
+      "metric_name": "CPUUtilization",
+      "statistic": "Average",
+      "threshold": 90,
+      "unit": "Percent",
+      "comparison_operator": "GreaterThanThreshold",
+      "period": 300,
+      "evaluation_periods": 2,
+      "datapoints_to_alarm": 2,
+      "treat_missing_data": "ignore"
+    }
+  ]
+}

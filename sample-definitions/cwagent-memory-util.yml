@@ -1,0 +1,40 @@
+---
+name: cwagent-memory-util
+description: |
+  CloudWatch Agent で収集されたメトリクスによる EC2 の メモリ 監視テンプレート
+  CloudWatch Agent の設定ファイルの additional_demensions に InstanceId だけ指定されていることが前提
+alarm_definitions:
+- alarm_id: notice-memory-util
+  notification_type: ordinary
+  alarm_name: ec2-<%= instance.id %>-notice-memory-util
+  alarm_description: <%= instance.name %> メモリ使用率が 10 分間 90 % を超えていたら通知
+  namespace: CWAgent
+  dimensions:
+  - name: InstanceId
+    value: <%= instance.id %>
+  metric_name: mem_used_percent
+  statistic: Average
+  threshold: 90
+  unit: Percent
+  comparison_operator: GreaterThanThreshold
+  period: 300
+  evaluation_periods: 2
+  datapoints_to_alarm: 2
+  treat_missing_data: ignore
+- alarm_id: emergency-memory-util
+  notification_type: emergency
+  alarm_name: ec2-<%= instance.id %>-emergency-memory-util
+  alarm_description: <%= instance.name %> メモリ使用率が 30 分間 90 % を超えていたら通知
+  namespace: CWAgent
+  dimensions:
+  - name: InstanceId
+    value: <%= instance.id %>
+  metric_name: mem_used_percent
+  statistic: Average
+  threshold: 90
+  unit: Percent
+  comparison_operator: GreaterThanThreshold
+  period: 300
+  evaluation_periods: 6
+  datapoints_to_alarm: 6
+  treat_missing_data: ignore
