@@ -13,19 +13,21 @@ rspec:
 	bin/rspec
 
 install:
-	bundle install --path vendor/bundle
+	rm -f .bundle/config; bundle install --path vendor/bundle
 
 validate:
 	sam validate
 
-deploy:
-	bundle install --deployment --path src/vendor/bundle --without test
+package:
+	rm -f .bundle/config; bundle install --deployment --path src/vendor/bundle --without test
 	sam package --template-file template.yaml --output-template-file cloudformation.yml \
-    --s3-bucket $(SAM_SOURCE_BUCKET) --s3-prefix $(SAM_SOURCE_PREFIX)
+      --s3-bucket $(SAM_SOURCE_BUCKET) --s3-prefix $(SAM_SOURCE_PREFIX)
+
+deploy: package
 	sam deploy --stack-name $(STACK_NAME) --template-file cloudformation.yml --capabilities CAPABILITY_NAMED_IAM \
-    --parameter-overrides \
-      DefinitionBucketName=$(DEFINITION_BUCKET) \
-      DefinitionObjectPrefix=$(DEFINITION_PREFIX)/ \
-      FunctionName=$(FUNCTION_NAME) \
-      EmergencyTopicArn=arn:aws:sns:$(AWS_REGION):$(AWS_ACCOUNT_ID):$(EMERGENCY_TOPIC_NAME) \
-      OrdinaryTopicArn=arn:aws:sns:$(AWS_REGION):$(AWS_ACCOUNT_ID):$(ORDINARY_TOPIC_NAME)
+      --parameter-overrides \
+        DefinitionBucketName=$(DEFINITION_BUCKET) \
+        DefinitionObjectPrefix=$(DEFINITION_PREFIX)/ \
+        FunctionName=$(FUNCTION_NAME) \
+        EmergencyTopicArn=arn:aws:sns:$(AWS_REGION):$(AWS_ACCOUNT_ID):$(EMERGENCY_TOPIC_NAME) \
+        OrdinaryTopicArn=arn:aws:sns:$(AWS_REGION):$(AWS_ACCOUNT_ID):$(ORDINARY_TOPIC_NAME)
