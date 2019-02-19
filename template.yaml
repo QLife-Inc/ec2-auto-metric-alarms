@@ -4,6 +4,22 @@ AWSTemplateFormatVersion: "2010-09-09"
 Transform: AWS::Serverless-2016-10-31
 Description: Set EC2 instance metric alarm for Auto-Scaling
 
+Metadata:
+  AWS::ServerlessRepo::Application:
+    Name: ec2-auto-metric-alarms
+    Description: Automatic setting of CloudWatch Metric Alarm for EC 2 instance increased / decreased by Auto-Scaling.
+    Author: QLife-Inc
+    SpdxLicenseId: MIT
+    LicenseUrl: LICENSE.txt
+    ReadmeUrl: README.md
+    Labels:
+      - EC2
+      - AutoScaling
+      - CloudWatch-Alarm
+    HomepageUrl: https://github.com/QLife-Inc/ec2-auto-metric-alarms
+    SemanticVersion: 1.0.0
+    SourceCodeUrl: https://github.com/QLife-Inc/ec2-auto-metric-alarms
+
 # https://docs.aws.amazon.com/ja_jp/AWSCloudFormation/latest/UserGuide/parameters-section-structure.html
 Parameters:
   FunctionName:

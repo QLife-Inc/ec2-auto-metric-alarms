@@ -56,7 +56,9 @@ class AutoAlarmFacade
       alarm.delete
       logger.info("アラーム '#{alarm.name}' を削除しました")
     end
-    @resource.alarms.select { |alarm| alarm.name.include?(instance.id) }.each(&:delete)
+    @resource.alarms.select do |alarm|
+      alarm.name.include?(instance.id) || alarm.name.include?(instance.name) 
+    end.each(&:delete)
   end
 
   def get_instance(instance_id)
